@@ -119,6 +119,10 @@ a {
 }
 
 @media (max-width: 768px) {
+  /* Scale h1 down so all headline lines fit within the mobile viewport */
+  header#top h1 {
+    font-size: clamp(22px, 9vw, 64px) !important;
+  }
   header h1 [data-word] {
     font-size: inherit !important;
   }
@@ -139,5 +143,36 @@ a {
 @media (max-width: 480px) {
   nav a[href="#top"] {
     font-size: 18px !important;
+  }
+}
+
+/* Mobile nav — CSS-driven so no FOUC before JS hydrates */
+.nav-hamburger {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 680px) {
+  .nav-desktop-links {
+    display: none !important;
+  }
+  .nav-hamburger {
+    display: flex !important;
+  }
+}
+
+/* Domain tag hover — CSS-native so it fires on mouse hover, not tap */
+[data-domain-tag] {
+  transition: background .3s, color .3s, transform .3s, border-color .3s;
+}
+@media (hover: hover) {
+  [data-domain-tag]:hover {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border-color: var(--accent) !important;
+    transform: translateY(-4px) rotate(-2deg) !important;
   }
 }
