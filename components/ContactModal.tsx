@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -57,6 +56,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
   // Mount → double-RAF → transition in; close → transition out → unmount
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFields(EMPTY);
       setErrors({});
       setSubmitError(null);
@@ -115,20 +115,32 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     setLoading(true);
     setSubmitError(null);
 
-    const { error } = await supabase.from("leads").insert({
-      name: fields.name.trim(),
-      email: fields.email.trim(),
-      phone: fields.phone.trim(),
-      message: fields.message.trim(),
-    });
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fields.name.trim(),
+          email: fields.email.trim(),
+          phone: fields.phone.trim(),
+          message: fields.message.trim(),
+        }),
+      });
 
-    setLoading(false);
+      const data = await res.json();
 
-    if (error) {
-      console.error("[ContactModal] Supabase insert error:", error);
-      setSubmitError(error.message || "Something went wrong. Please try again.");
+      if (!res.ok || !data.success) {
+        setSubmitError(data.error || "Something went wrong. Please try again.");
+        setLoading(false);
+        return;
+      }
+    } catch {
+      setSubmitError("Network error. Please check your connection and try again.");
+      setLoading(false);
       return;
     }
+
+    setLoading(false);
 
     // Success: close modal, show toast
     if (toastTimer.current) clearTimeout(toastTimer.current);

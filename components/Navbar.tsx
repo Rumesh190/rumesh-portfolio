@@ -86,7 +86,6 @@ export default function Navbar() {
   const [isDark, setIsDark] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const ctaRef = useMagnetic();
 
   useEffect(() => {
     try {
@@ -260,39 +259,34 @@ export default function Navbar() {
             <NavLink href="#contact">Contact</NavLink>
 
             <button
-              ref={ctaRef as React.RefObject<HTMLButtonElement>}
-              data-magnetic=""
+              onClick={() => setModalOpen(true)}
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                padding: "10px 18px",
+                padding: "7px 18px",
                 marginLeft: "8px",
-                border: "none",
+                border: "1px solid currentColor",
                 borderRadius: "999px",
-                background: "#ff8a00",
-                color: "#fff",
+                background: "none",
+                color: "inherit",
                 fontFamily: "'Space Mono'",
                 fontSize: "12px",
-                fontWeight: 600,
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
                 cursor: "pointer",
-                transition: "all .25s ease",
-                boxShadow: "0 8px 24px rgba(255,138,0,.25)",
+                opacity: 0.75,
+                transition: "opacity .25s, transform .25s cubic-bezier(.2,.7,.2,1)",
               }}
-              onClick={() => setModalOpen(true)}
-              onMouseOver={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-2px)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 14px 30px rgba(255,138,0,.35)";
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.transform = "translateY(-1px)";
               }}
-              onMouseOut={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 24px rgba(255,138,0,.25)";
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = "0.75";
+                e.currentTarget.style.transform = "";
               }}
             >
-              Let&apos;s Build Together →
+              Enquire
             </button>
           </div>
 
@@ -381,20 +375,19 @@ export default function Navbar() {
             marginTop: "8px",
             display: "inline-flex",
             alignItems: "center",
-            gap: "10px",
-            padding: "16px 28px",
+            padding: "14px 32px",
             borderRadius: "999px",
-            background: "#ff8a00",
-            color: "#fff",
+            border: "1px solid var(--ink)",
+            background: "none",
+            color: "var(--ink)",
             fontFamily: "'Space Mono'",
             fontSize: "13px",
-            fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: ".08em",
           }}
           onClick={(e) => { e.preventDefault(); closeMenu(); setModalOpen(true); }}
         >
-          Let&apos;s Build Together →
+          Enquire
         </a>
       </div>
     </>

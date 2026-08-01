@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import RotatingWords from "./RotatingWords";
 
 function useMagnetic() {
   const ref = useRef<HTMLElement | null>(null);
@@ -110,15 +111,7 @@ export default function Hero() {
       <div
         ref={floatingCircleRef}
         style={{
-          position: "absolute",
-          top: "14%",
-          right: "9%",
-          width: "clamp(90px,13vw,210px)",
-          height: "clamp(90px,13vw,210px)",
-          borderRadius: "50%",
-          background: "var(--accent)",
-          animation: "floaty 7s ease-in-out infinite",
-          zIndex: 0,
+          display: "none"
         }}
       />
 
@@ -205,28 +198,7 @@ export default function Hero() {
             data-line=""
             style={{ display: "block", overflow: "hidden" }}
           >
-            <span
-              ref={word2}
-              data-word=""
-              style={{
-                display: "inline-block",
-                fontSize: "clamp(48px,15vw,200px)",
-              }}
-            >
-              actually&nbsp;
-            </span>
-            <span
-              ref={heartRef}
-              data-word=""
-              data-heart=""
-              style={{
-                display: "inline-block",
-                color: "var(--accent)",
-                fontSize: "clamp(42px,13vw,180px)",
-              }}
-            >
-              ♥
-            </span>
+            <RotatingWords />
           </span>
         </h1>
 

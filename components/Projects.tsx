@@ -118,6 +118,7 @@ export default function Projects() {
     `;
 
     ov.style.display = "flex";
+    // eslint-disable-next-line react-hooks/immutability
     document.body.style.overflow = "hidden";
     ov.scrollTop = 0;
     requestAnimationFrame(() => {
