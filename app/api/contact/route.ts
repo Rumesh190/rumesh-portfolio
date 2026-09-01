@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     const { error: emailError } = await resend.emails.send({
       from: process.env.RESEND_FROM!,
       to: process.env.MY_EMAIL!,
-      subject: "🚀 New Portfolio Inquiry",
+      subject: " New Portfolio Inquiry",
       html: buildEmail({ ...safe, submitted }),
     });
 
