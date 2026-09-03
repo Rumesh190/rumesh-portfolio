@@ -125,6 +125,15 @@ export default function Projects() {
           }}>
             {PROJECTS.map((project, index) => (
               <article className={`project-panel${activeProject === index ? " is-active" : ""}${leavingProject === index ? " is-leaving" : ""}`} key={project.title}>
+                <button className="project-panel__mobile-open" type="button" onClick={() => { resumeAutoplayAfter(6000); setOpenProject(index); }} aria-label={`Open ${project.title.replace("\n"," ")} project`}>
+                  <span className="project-panel__mobile-meta">
+                    <span>{String(index + 1).padStart(2,"0")}</span>
+                    <span aria-hidden="true">{project.system ? <strong>5S</strong> : <FlowIcon path={project.icon} />}</span>
+                  </span>
+                  <strong>{project.title.replace("\n"," — ")}</strong>
+                  <small>{project.category}</small>
+                  <i aria-hidden="true">↗</i>
+                </button>
                 <button className="project-rail" type="button" role="tab" aria-selected={activeProject === index} onClick={() => activateProject(index)}>
                   <span>{String(index + 1).padStart(2,"0")}</span><i aria-hidden="true" /><strong>{project.title.replace("\n"," — ")}</strong><b aria-hidden="true" />
                 </button>
