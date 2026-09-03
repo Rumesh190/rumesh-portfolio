@@ -1,17 +1,17 @@
-import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import Navbar from "@/components/Navbar";
 import About from "@/components/About";
-import Projects from "@/components/Projects";
 import Experience from "@/components/Experience";
 import Footer from "@/components/Footer";
+import OpeningReveal from "@/components/OpeningReveal";
 
 export default function Home() {
   return (
-    <div style={{ position: "relative", width: "100%", overflow: "hidden" }}>
+    <div className="portfolio-page">
+      <OpeningReveal />
       <Navbar />
       <Hero />
       <About />
-      <Projects />
       <Experience />
       <Footer />
     </div>

@@ -18,7 +18,7 @@ type FieldErrors = Partial<Record<keyof Fields, string>>;
 
 const LABEL: React.CSSProperties = {
   display: "block",
-  fontFamily: "'Space Mono'",
+  fontFamily: "var(--font-mono)",
   fontSize: "11px",
   textTransform: "uppercase",
   letterSpacing: ".1em",
@@ -29,7 +29,7 @@ const LABEL: React.CSSProperties = {
 
 const ERR: React.CSSProperties = {
   display: "block",
-  fontFamily: "'Space Mono'",
+  fontFamily: "var(--font-mono)",
   fontSize: "11px",
   color: "var(--accent)",
   marginTop: "4px",
@@ -171,7 +171,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
           background: var(--bg);
           border: 1.5px solid rgba(127,127,127,.3);
           border-radius: 10px;
-          font-family: 'Space Mono', monospace;
+          font-family: var(--font-mono), monospace;
           font-size: 13px;
           color: var(--ink);
           outline: none;
@@ -210,7 +210,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             zIndex: 2000,
             background: "var(--ink)",
             color: "var(--bg)",
-            fontFamily: "'Space Mono'",
+            fontFamily: "var(--font-mono)",
             fontSize: "12px",
             textTransform: "uppercase",
             letterSpacing: ".08em",
@@ -297,7 +297,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             <h2
               id="cm-title"
               style={{
-                fontFamily: "'Bricolage Grotesque'",
+                fontFamily: "var(--font-display)",
                 fontWeight: 800,
                 fontSize: "clamp(22px,3.5vw,36px)",
                 letterSpacing: "-.03em",
@@ -313,7 +313,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
             <p
               style={{
-                fontFamily: "'Space Mono'",
+                fontFamily: "var(--font-mono)",
                 fontSize: "12px",
                 textTransform: "uppercase",
                 letterSpacing: ".08em",
@@ -398,7 +398,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
               {submitError && (
                 <p
                   style={{
-                    fontFamily: "'Space Mono'",
+                    fontFamily: "var(--font-mono)",
                     fontSize: "12px",
                     color: "var(--accent)",
                     textTransform: "uppercase",
@@ -430,7 +430,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     background: "none",
                     border: "1.5px solid var(--ink)",
                     borderRadius: "999px",
-                    fontFamily: "'Space Mono'",
+                    fontFamily: "var(--font-mono)",
                     fontSize: "12px",
                     textTransform: "uppercase",
                     letterSpacing: ".08em",
@@ -452,7 +452,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                     background: "var(--ink)",
                     border: "none",
                     borderRadius: "999px",
-                    fontFamily: "'Space Mono'",
+                    fontFamily: "var(--font-mono)",
                     fontSize: "12px",
                     textTransform: "uppercase",
                     letterSpacing: ".08em",

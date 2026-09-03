@@ -1,307 +1,103 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { HeroActions } from "./HeroClient";
 import RotatingWords from "./RotatingWords";
 
-function useMagnetic() {
-  const ref = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || matchMedia("(pointer:coarse)").matches) return;
-    el.style.transition = "transform .3s cubic-bezier(.2,.7,.2,1)";
-    const onMove = (e: MouseEvent) => {
-      const r = el.getBoundingClientRect();
-      const mx = e.clientX - r.left - r.width / 2;
-      const my = e.clientY - r.top - r.height / 2;
-      el.style.transform = `translate(${mx * 0.35}px,${my * 0.5}px)`;
-    };
-    const onLeave = () => { el.style.transform = ""; };
-    el.addEventListener("mousemove", onMove as EventListener);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mousemove", onMove as EventListener);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
-  return ref;
-}
-
 export default function Hero() {
-  const word0 = useRef<HTMLSpanElement>(null);
-  const word1 = useRef<HTMLSpanElement>(null);
-  const word2 = useRef<HTMLSpanElement>(null);
-  const heartRef = useRef<HTMLSpanElement>(null);
-  const floatingCircleRef = useRef<HTMLDivElement>(null);
-  const revealRef1 = useRef<HTMLDivElement>(null);
-  const revealRef2 = useRef<HTMLDivElement>(null);
-  const seeWorkRef = useMagnetic();
-  const resumeRef = useMagnetic();
+  const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Hero word entrance animation
-    const words = [word0.current, word1.current, word2.current, heartRef.current];
-    words.forEach((w, i) => {
-      if (!w) return;
-      w.style.transform = "translateY(115%) rotate(6deg)";
-      w.style.transition = "transform 1s cubic-bezier(.2,.85,.25,1)";
-      setTimeout(() => { w.style.transform = "none"; }, 180 + i * 130);
-    });
+    const hero = heroRef.current;
+    if (!hero || matchMedia("(pointer: coarse)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Heart wobble after words reveal
-    const heartTimer = setTimeout(() => {
-      if (heartRef.current) {
-        heartRef.current.style.animation = "wobble 1.2s ease-in-out infinite";
-        heartRef.current.style.transformOrigin = "center";
-      }
-    }, 1400);
-
-    // Word hover effects
-    words.forEach((w) => {
-      if (!w) return;
-      w.addEventListener("mouseenter", () => {
-        w.style.transform = "translateY(-10px) rotate(-3deg) scale(1.05)";
+    let frame = 0;
+    const onMove = (event: PointerEvent) => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const bounds = hero.getBoundingClientRect();
+        const x = Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width));
+        const y = Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height));
+        const dx = x - .5;
+        const dy = y - .5;
+        hero.style.setProperty("--hero-pointer-x", `${x * 100}%`);
+        hero.style.setProperty("--hero-pointer-y", `${y * 100}%`);
+        hero.style.setProperty("--hero-line-x", `${dx * 18}px`);
+        hero.style.setProperty("--hero-line-y", `${dy * 10}px`);
+        hero.style.setProperty("--hero-line-tilt", `${dx * .8}deg`);
+        hero.style.setProperty("--hero-line-two-x", `${dx * -10}px`);
+        hero.style.setProperty("--hero-line-two-y", `${dy * -4.5}px`);
+        hero.style.setProperty("--hero-line-two-tilt", `${dx * -.48}deg`);
+        hero.style.setProperty("--hero-line-three-x", `${dx * 5.5}px`);
+        hero.style.setProperty("--hero-line-three-y", `${dy * 2.5}px`);
+        hero.style.setProperty("--hero-line-three-tilt", `${dx * .28}deg`);
+        hero.style.setProperty("--hero-glow-opacity", "1");
       });
-      w.addEventListener("mouseleave", () => {
-        w.style.transform = "none";
-      });
-    });
-
-    // Parallax on the floating circle on scroll
-    const onScroll = () => {
-      const s = window.scrollY;
-      if (floatingCircleRef.current) {
-        floatingCircleRef.current.style.marginTop = s * 0.12 + "px";
-      }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const onLeave = () => {
+      cancelAnimationFrame(frame);
+      hero.style.setProperty("--hero-line-x", "0px");
+      hero.style.setProperty("--hero-line-y", "0px");
+      hero.style.setProperty("--hero-line-tilt", "0deg");
+      hero.style.setProperty("--hero-line-two-x", "0px");
+      hero.style.setProperty("--hero-line-two-y", "0px");
+      hero.style.setProperty("--hero-line-two-tilt", "0deg");
+      hero.style.setProperty("--hero-line-three-x", "0px");
+      hero.style.setProperty("--hero-line-three-y", "0px");
+      hero.style.setProperty("--hero-line-three-tilt", "0deg");
+      hero.style.setProperty("--hero-glow-opacity", "0");
+    };
 
-    // Hero reveal elements animate in on load (they're always in/near the viewport)
-    const reveals = [revealRef1.current, revealRef2.current];
-    reveals.forEach((el, i) => {
-      if (!el) return;
-      el.style.opacity = "0";
-      el.style.transform = "translateY(46px)";
-      el.style.transition =
-        "opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)";
-      setTimeout(() => {
-        el.style.opacity = "1";
-        el.style.transform = "none";
-      }, 300 + i * 120);
-    });
-
+    hero.addEventListener("pointermove", onMove);
+    hero.addEventListener("pointerleave", onLeave);
     return () => {
-      clearTimeout(heartTimer);
-      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(frame);
+      hero.removeEventListener("pointermove", onMove);
+      hero.removeEventListener("pointerleave", onLeave);
     };
   }, []);
 
   return (
-    <header
-      id="top"
-      style={{
-        position: "relative",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        padding: "120px clamp(20px,4vw,56px) 80px",
-      }}
-    >
-      {/* Floating red circle */}
-      <div
-        ref={floatingCircleRef}
-        style={{
-          display: "none"
-        }}
-      />
+    <section ref={heroRef} id="top" className="intelligence-hero page-section" aria-labelledby="hero-title">
+      <div className="intelligence-hero__aurora" aria-hidden="true">
+        <span className="intelligence-hero__blade intelligence-hero__blade--one" />
+        <span className="intelligence-hero__blade intelligence-hero__blade--two" />
+        <span className="intelligence-hero__blade intelligence-hero__blade--three" />
+        <span className="intelligence-hero__blade intelligence-hero__blade--four" />
+      </div>
+      <div className="intelligence-hero__shade" aria-hidden="true" />
+      <div className="intelligence-hero__grain" aria-hidden="true" />
+      <div className="intelligence-hero__pointer-glow" aria-hidden="true" />
 
-      {/* Main content */}
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          maxWidth: "1600px",
-          width: "100%",
-          margin: "0 auto",
-        }}
-      >
-        {/* Status indicator */}
-        <div
-          ref={revealRef1}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "14px",
-            fontFamily: "var(--font-space-mono)",
-            fontSize: "clamp(11px,1.1vw,14px)",
-            textTransform: "uppercase",
-            letterSpacing: "0.14em",
-            marginBottom: "clamp(24px,5vh,56px)",
-          }}
-        >
-          <span
-            style={{
-              width: "10px",
-              height: "10px",
-              borderRadius: "50%",
-              background: "rgb(22,163,74)",
-              animation: "blink 1.6s ease infinite",
-              flexShrink: 0,
-            }}
-          />
-          <b>Rumesh Babu · UX/UI Designer · Chennai · 11+ yrs</b>
+      <div className="intelligence-hero__nav-row" aria-hidden="true" />
+
+      <div className="intelligence-hero__content">
+        <div className="intelligence-trust hero-enter" style={{ "--enter-delay": ".05s" } as React.CSSProperties}>
+          <span className="intelligence-trust__status" aria-hidden="true" />
+          <span className="intelligence-trust__pill">
+            Rumesh Babu · Full-Stack Product Developer · Chennai
+            <span>11+ years of product experience</span>
+          </span>
         </div>
 
-        {/* Headline */}
-        <h1
-          style={{
-            fontFamily: "var(--font-bricolage)",
-            fontWeight: 800,
-            lineHeight: 0.82,
-            letterSpacing: "-0.04em",
-            fontSize: "clamp(48px,15vw,270px)",
-            textTransform: "uppercase",
-          }}
-        >
-          <span
-            data-line=""
-            style={{ display: "block", overflow: "hidden" }}
-          >
-            <span
-              ref={word0}
-              data-word=""
-              style={{
-                display: "inline-block",
-                fontSize: "clamp(48px,15vw,200px)",
-              }}
-            >
-              I&nbsp;design
-            </span>
-          </span>
-          <span
-            data-line=""
-            style={{ display: "block", overflow: "hidden" }}
-          >
-            <span
-              ref={word1}
-              data-word=""
-              style={{
-                display: "inline-block",
-                color: "var(--accent)",
-                fontSize: "clamp(48px,15vw,200px)",
-              }}
-            >
-              things&nbsp;people
-            </span>
-          </span>
-          <span
-            data-line=""
-            style={{ display: "block", overflow: "hidden" }}
-          >
-            <RotatingWords />
-          </span>
+        <h1 id="hero-title" className="intelligence-hero__headline" aria-label="I build digital products that work, scale, ship, perform and grow">
+          <span>I Build Digital</span>
+          <span>Products</span>
+          <span>That <RotatingWords /></span>
         </h1>
 
-        {/* Description + CTAs */}
-        <div
-          ref={revealRef2}
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            gap: "24px",
-            marginTop: "clamp(32px,6vh,64px)",
-          }}
-        >
-          <p
-            style={{
-              maxWidth: "600px",
-              fontSize: "clamp(16px,1.5vw,22px)",
-              lineHeight: 1.45,
-              fontFamily: "var(--font-space-grotesk)",
-              width: "100%",
-            }}
-          >
-            I design mobile &amp; SaaS products that users love — 11+ years
-            turning complex systems into things people genuinely enjoy.
-          </p>
-
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-            <a
-              ref={seeWorkRef as React.RefObject<HTMLAnchorElement>}
-              href="#work"
-              data-magnetic=""
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "12px",
-                background: "var(--ink)",
-                color: "var(--bg)",
-                fontFamily: "var(--font-space-mono)",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                fontSize: "13px",
-                padding: "18px 26px",
-                borderRadius: "100px",
-              }}
-            >
-              See the work
-              <span style={{ fontSize: "18px" }}>↓</span>
-            </a>
-            <a
-              ref={resumeRef as React.RefObject<HTMLAnchorElement>}
-              href="/assets/Rumesh-Babu-Resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-magnetic=""
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "12px",
-                border: "2px solid var(--ink)",
-                fontFamily: "var(--font-space-mono)",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                fontSize: "13px",
-                padding: "18px 26px",
-                borderRadius: "100px",
-              }}
-            >
-              Résumé ↗
-            </a>
+        <div className="hero-editorial__support">
+          <div className="intelligence-hero__intro hero-enter" style={{ "--enter-delay": ".28s" } as React.CSSProperties}>
+            <span>↗ Product to Production</span>
+            <p>
+              From idea to production — I design and build modern SaaS, web applications
+              and internal tools across frontend, backend, database and deployment.
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Scroll indicator */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: "26px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "22px",
-          height: "38px",
-          border: "2px solid var(--ink)",
-          borderRadius: "14px",
-          zIndex: 2,
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: "6px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "4px",
-            height: "8px",
-            borderRadius: "2px",
-            background: "var(--ink)",
-            animation: "cuedot 1.6s infinite",
-          }}
-        />
+        <HeroActions />
       </div>
-    </header>
+    </section>
   );
 }

@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Expertise from "./Expertise";
+import Projects from "./Projects";
+import SectionLabel from "./SectionLabel";
 
 export default function About() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -57,41 +60,13 @@ export default function About() {
     );
     counters.forEach((el) => cio.observe(el));
 
-    // Capabilities hover — identical to original initCaps
-    const rows = root.querySelectorAll<HTMLElement>("[data-caprow]");
-    const coarse = matchMedia("(pointer:coarse)").matches;
-    if (coarse) {
-      rows.forEach((r) => {
-        const desc = r.querySelector<HTMLElement>("[data-cap-desc]");
-        if (desc) desc.style.opacity = ".8";
-      });
-    } else {
-      rows.forEach((r) => {
-        const title = r.querySelector<HTMLElement>("[data-cap-title]");
-        const desc = r.querySelector<HTMLElement>("[data-cap-desc]");
-        const num = r.querySelector<HTMLElement>("[data-cap-num]");
-        r.addEventListener("mouseenter", () => {
-          r.style.paddingLeft = "clamp(14px,2.4vw,40px)";
-          if (title) { title.style.transform = "translateX(6px)"; title.style.color = "var(--accent)"; }
-          if (desc) desc.style.opacity = "1";
-          if (num) num.style.opacity = "1";
-        });
-        r.addEventListener("mouseleave", () => {
-          r.style.paddingLeft = "";
-          if (title) { title.style.transform = ""; title.style.color = ""; }
-          if (desc) desc.style.opacity = ".55";
-          if (num) num.style.opacity = ".5";
-        });
-      });
-    }
-
     // Toolbox — identical to original buildTools
     const sets: Record<string, string[]> = {
-      craft: ["Figma","FigJam","Framer","ProtoPie","Spline 3D","Photoshop","Illustrator","After Effects","Zeplin"],
-      craft2: ["Wireframes","Motion","Prototyping","Design Ops","Handoff","Accessibility","Systems","Tokens"],
-      ai: ["Figma AI","Claude","ChatGPT","Midjourney","v0","Galileo AI","Uizard","Cursor","Runway","Krea"],
+      craft: ["Product Strategy","UX Research","User Flows","Information Architecture","Wireframing","Figma","FigJam","Prototyping","Interaction Design","Design Systems","Accessibility","Developer Handoff"],
+      ai: ["HTML5","CSS3","JavaScript","TypeScript","React.js","Next.js","Tailwind CSS","Responsive Design","State Management","REST Integration","Performance","Testing"],
+      craft2: ["Java","Spring Boot","Spring Security","REST APIs","Microservices","Hibernate / JPA","PostgreSQL","MySQL","Redis","Kafka","JWT","Docker","GitHub Actions","CI / CD","AWS","Vercel","Nginx","Webhooks","Razorpay","Monitoring"],
     };
-    const speeds: Record<string, number> = { craft: 52, craft2: 60, ai: 46 };
+    const speeds: Record<string, number> = { craft: 96, craft2: 112, ai: 104 };
 
     Object.keys(sets).forEach((key) => {
       const strip = root.querySelector<HTMLElement>(`[data-toolstrip="${key}"]`);
@@ -104,7 +79,7 @@ export default function About() {
         const w = document.createElement("span");
         w.setAttribute("data-toolword", ai ? "ai" : "");
         w.textContent = name;
-        w.style.cssText = `font-family:'Bricolage Grotesque';font-weight:800;text-transform:uppercase;letter-spacing:-.03em;line-height:1;font-size:clamp(32px,5.5vw,90px);padding:0 clamp(20px,2.6vw,52px);white-space:nowrap;cursor:default;transition:color .3s,-webkit-text-stroke-color .3s,transform .3s`;
+        w.style.cssText = `font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.03em;line-height:1;font-size:clamp(32px,5.5vw,90px);padding:0 clamp(20px,2.6vw,52px);white-space:nowrap;cursor:default;transition:color .3s,-webkit-text-stroke-color .3s,transform .3s`;
         if (ai) { w.style.color = "var(--accent)"; }
         else { w.style.color = "transparent"; (w.style as CSSStyleDeclaration & { webkitTextStroke: string }).webkitTextStroke = "2px var(--ink)"; }
         const sep = document.createElement("span");
@@ -136,122 +111,99 @@ export default function About() {
   return (
     <div ref={rootRef}>
       {/* ABOUT */}
-      <section id="about" style={{background:"#141210",color:"#f1ece1",padding:"clamp(90px,14vh,180px) clamp(20px,4vw,56px)",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:"-40px",right:"-40px",fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(80px,15vw,210px)",color:"rgba(255,255,255,.04)",lineHeight:.8,pointerEvents:"none",userSelect:"none"}}>
-          HELLO
-        </div>
-        <div style={{maxWidth:"1500px",margin:"0 auto",position:"relative",zIndex:2}}>
-          <span data-reveal="" style={{fontFamily:"'Space Mono'",fontSize:"13px",textTransform:"uppercase",letterSpacing:".1em",opacity:.6,display:"block",marginBottom:"20px"}}>
-            / 01 — Who I am
-          </span>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(min(100%,300px),1fr))",gap:"clamp(30px,5vw,70px)",alignItems:"center"}}>
-            <div data-reveal="" style={{position:"relative"}}>
-              <div style={{position:"absolute",inset:"-10% -8%",background:"radial-gradient(circle at 50% 40%,var(--accent),transparent 68%)",filter:"blur(55px)",opacity:.6,zIndex:0,animation:"floaty 8s ease-in-out infinite"}} />
-              <div style={{position:"relative",zIndex:2,border:"2px solid rgba(255,255,255,.14)",borderRadius:"24px",overflow:"hidden",aspectRatio:"4/5",boxShadow:"0 34px 70px rgba(0,0,0,.55)"}}>
-                <Image src="/assets/image-1.png" alt="Rumesh Ravi" fill style={{objectFit:"cover",objectPosition:"50% 40%"}} sizes="(max-width:768px) 100vw, 40vw" />
-              </div>
+      <section id="about" className="about-rework page-section">
+        <div className="about-rework__ambient" aria-hidden="true" />
+        <SectionLabel index="01">About me</SectionLabel>
+        <div className="about-rework__inner">
+          <div className="about-rework__layout">
+            <div className="about-rework__portrait" data-reveal="">
+              <Image
+                src="/assets/image-1.png"
+                alt="Rumesh Ravi"
+                fill
+                priority={false}
+                style={{ objectFit: "cover", objectPosition: "50% 40%" }}
+                sizes="(max-width: 760px) calc(100vw - 40px), 42vw"
+              />
             </div>
-            <div>
-              <h2 data-reveal="" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,5vw,72px)",lineHeight:.9,letterSpacing:"-.03em",textTransform:"uppercase",marginBottom:"14px"}}>
-                The best part<br />of design
+
+            <div className="about-rework__content">
+              <h2 className="about-rework__headline section-heading" data-reveal="">
+                <span>I don&apos;t just</span>
+                <span>design products.</span>
+                <span><em>I build</em> them.</span>
               </h2>
-              <p data-reveal="" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:600,fontSize:"clamp(16px,1.9vw,26px)",lineHeight:1.05,letterSpacing:"-.02em",maxWidth:"20ch",marginBottom:"clamp(40px,6vh,80px)"}}>
-                is putting myself in<span style={{color:"var(--accent)"}}> someone else&apos;s shoes.</span>
+
+              <p className="about-rework__support section-subheading" data-reveal="">
+                <span aria-hidden="true" />From interface to infrastructure.
               </p>
-              <div style={{display:"flex",flexDirection:"column",gap:"clamp(28px,4vw,48px)"}}>
-                <div data-reveal="">
-                  <p style={{fontSize:"clamp(16px,1.4vw,19px)",lineHeight:1.6,opacity:.85}}>
-                    Eleven years,<span style={{color:"var(--accent)"}}> real products people use every day</span> — not concepts, not dribbble shots. I put myself in the user&apos;s shoes and trust that good ideas plus better design change how things work.
-                  </p>
+
+              <p className="about-rework__copy" data-reveal="">
+                I work across product thinking, frontend, backend, databases and deployment to turn ideas into real, usable software. My design background helps me obsess over the experience; my development work lets me take that experience all the way to production.
+              </p>
+
+              <div className="about-rework__capabilities" data-reveal="">
+                <h3>What I build with</h3>
+                <div className="about-rework__card-grid">
+                  {[
+                    { title: "Product", items: ["Strategy", "UX Design", "Systems Thinking"], path: "M4 7h16M7 4v16m10-16v16M4 17h16" },
+                    { title: "Frontend", items: ["React", "Next.js", "TypeScript"], path: "m8 9-4 3 4 3m8-6 4 3-4 3m-3-9-2 12" },
+                    { title: "Backend", items: ["Node.js", "Java", "PostgreSQL"], path: "M5 6c0-2 14-2 14 0s-14 2-14 0v12c0 2 14 2 14 0V6M5 12c0 2 14 2 14 0" },
+                    { title: "Ship", items: ["Git", "Vercel", "CI / CD"], path: "M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" },
+                  ].map((capability) => (
+                    <article className="about-rework__card" key={capability.title}>
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d={capability.path} />
+                        <circle cx="19" cy="5" r="1.5" />
+                      </svg>
+                      <h4>{capability.title}</h4>
+                      <ul>{capability.items.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </article>
+                  ))}
                 </div>
-                <div data-reveal="">
-                  <p style={{fontFamily:"'Space Mono'",fontSize:"12px",letterSpacing:".1em",textTransform:"uppercase",opacity:.6,marginBottom:"16px"}}>
-                    Domains I&apos;ve shipped in
-                  </p>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"10px"}}>
-                    {["SaaS","Customer Service","Cloud Computing","Help Desk","iOS / Android","User Onboarding"].map((tag) => (
-                      <span key={tag} data-domain-tag="" style={{border:"1.5px solid rgba(255,255,255,.35)",borderRadius:"100px",padding:"8px 16px",fontSize:"14px",cursor:"default"}}>{tag}</span>
-                    ))}
+              </div>
+
+              <div className="about-rework__stats" data-reveal="">
+                {[
+                  { value: "11", plus: true, label: <>Years<br />building products</> },
+                  { value: "3", plus: false, label: <>Product<br />companies</> },
+                  { value: "10", plus: true, label: <>Products<br />shipped</> },
+                ].map((stat) => (
+                  <div className="about-rework__stat" key={stat.value + String(stat.plus)}>
+                    <strong><span data-count="" data-to={stat.value}>{stat.value}</span>{stat.plus && <em>+</em>}</strong>
+                    <span>{stat.label}</span>
                   </div>
-                  <div style={{display:"flex",gap:"36px",marginTop:"44px",flexWrap:"wrap"}}>
-                    <div>
-                      <div data-count="" data-to="11" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,3.4vw,50px)",color:"var(--accent)",lineHeight:1}}>11+</div>
-                      <div style={{fontFamily:"'Space Mono'",fontSize:"12px",textTransform:"uppercase",letterSpacing:".08em",opacity:.6,marginTop:"6px"}}>Years</div>
-                    </div>
-                    <div>
-                      <div data-count="" data-to="3" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,3.4vw,50px)",color:"var(--accent)",lineHeight:1}}>3</div>
-                      <div style={{fontFamily:"'Space Mono'",fontSize:"12px",textTransform:"uppercase",letterSpacing:".08em",opacity:.6,marginTop:"6px"}}>Companies</div>
-                    </div>
-                    <div>
-                      <div data-count="" data-to="10" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,3.4vw,50px)",color:"var(--accent)",lineHeight:1}}>10+</div>
-                      <div style={{fontFamily:"'Space Mono'",fontSize:"12px",textTransform:"uppercase",letterSpacing:".08em",opacity:.6,marginTop:"6px"}}>Products shipped</div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* MARQUEE */}
-      <div style={{background:"var(--accent)",color:"var(--bg)",padding:"22px 0",overflow:"hidden",transform:"rotate(-2deg)",margin:"0 -3vw",width:"106vw"}}>
-        <div style={{display:"flex",width:"max-content",animation:"marq 26s linear infinite",fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(22px,3.6vw,44px)",textTransform:"uppercase",letterSpacing:"-.02em"}}>
-          {["UI / UX ✦","Design Systems ✦","User Research ✦","SaaS ✦","Mobile ✦","Product Vision ✦","UI / UX ✦","Design Systems ✦","User Research ✦","SaaS ✦","Mobile ✦","Product Vision ✦"].map((item, i) => (
-            <span key={i} style={{padding:"0 30px"}}>{item}</span>
-          ))}
-        </div>
+      <Projects />
+
+      <div className="expertise-chapter">
+        <Expertise />
       </div>
 
-      {/* CAPABILITIES */}
-      <section style={{padding:"clamp(80px,12vh,150px) clamp(20px,4vw,56px)"}}>
-        <div style={{maxWidth:"1500px",margin:"0 auto"}}>
-          <div data-reveal="" style={{marginBottom:"clamp(36px,6vh,72px)"}}>
-            <span style={{fontFamily:"'Space Mono'",fontSize:"13px",textTransform:"uppercase",letterSpacing:".1em",opacity:.6}}>/ 02 — Capabilities</span>
-            <h2 style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,5vw,72px)",lineHeight:.9,letterSpacing:"-.03em",textTransform:"uppercase",marginTop:"14px"}}>
-              I can&apos;t do<br />just one thing
-            </h2>
-            <p style={{fontFamily:"'Bricolage Grotesque'",fontWeight:600,fontSize:"clamp(15px,1.5vw,21px)",opacity:.55,marginTop:"12px"}}>
-              so here&apos;s everything I bring to the table&nbsp;
-            </p>
-          </div>
-          <div data-caplist="" style={{borderTop:"1.5px solid var(--ink)"}}>
-            {[
-              {num:"01",title:"Product Vision",desc:"Defining the vision across key modules and turning fuzzy ideas into shipped features — reading specs and user psychology in equal measure."},
-              {num:"02",title:"Design Systems",desc:"Building & scaling the Zoho Design System — the kind of foundation that keeps teams fast and products consistent."},
-              {num:"03",title:"Research & Testing",desc:"Concept & usability testing, personas, information architecture — chasing feedback until the model actually works."},
-              {num:"04",title:"Interaction Model",desc:"Defining the right interaction model, then evaluating its success — wireframes and prototypes built around customer needs."},
-              {num:"05",title:"Strategy & Market",desc:"Competitor analysis, market opportunities, prioritising requirements and building the business case — then mentoring the team to ship it."},
-            ].map(({num, title, desc}) => (
-              <div key={num} data-caprow="" data-reveal="" style={{position:"relative",display:"flex",flexWrap:"wrap",alignItems:"baseline",gap:"clamp(14px,3vw,44px)",padding:"clamp(24px,3.6vh,44px) clamp(4px,1vw,16px)",borderBottom:"1.5px solid var(--ink)",cursor:"default",transition:"padding .4s cubic-bezier(.2,.8,.25,1)"}}>
-                <div style={{display:"flex",alignItems:"baseline",gap:"clamp(14px,1.6vw,26px)",flex:"1 1 300px",minWidth:0}}>
-                  <span data-cap-num="" style={{fontFamily:"'Space Mono'",fontSize:"clamp(12px,1vw,14px)",opacity:.5,flexShrink:0}}>{num}</span>
-                  <h3 data-cap-title="" style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(24px,3.6vw,48px)",letterSpacing:"-.03em",lineHeight:.92,textTransform:"uppercase",transition:"transform .45s cubic-bezier(.2,.8,.25,1),color .35s"}}>{title}</h3>
-                </div>
-                <p data-cap-desc="" style={{flex:"1 1 320px",fontSize:"clamp(15px,1.15vw,18px)",lineHeight:1.55,opacity:.55,maxWidth:"46ch",transition:"opacity .4s"}}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* TOOLBOX */}
-      <section style={{padding:"clamp(70px,10vh,130px) 0",overflow:"hidden"}}>
-        <div data-reveal="" style={{maxWidth:"1500px",margin:"0 auto",padding:"0 clamp(20px,4vw,56px)",marginBottom:"clamp(34px,6vh,68px)"}}>
-          <span style={{fontFamily:"'Space Mono'",fontSize:"13px",textTransform:"uppercase",letterSpacing:".1em",opacity:.6}}>/ 03 — Toolbox</span>
-          <h2 style={{fontFamily:"'Bricolage Grotesque'",fontWeight:800,fontSize:"clamp(30px,5vw,72px)",lineHeight:.9,letterSpacing:"-.03em",textTransform:"uppercase",marginTop:"14px"}}>
-            DESIGN AI-POWERED
+      <section style={{padding:"clamp(64px,8vh,96px) var(--page-gutter) clamp(70px,10vh,130px)",overflow:"hidden"}}>
+        <div data-reveal="" style={{width:"min(100%, var(--section-shell-width))",margin:"0 auto",marginBottom:"clamp(34px,6vh,68px)"}}>
+          <span className="section-kicker"><span aria-hidden="true">/</span> 03 — Expertise · Toolbox</span>
+          <h2 className="section-heading" style={{fontFamily:"var(--font-display)",fontWeight:800,lineHeight:.9,letterSpacing:"-.03em",textTransform:"uppercase",marginTop:"14px"}}>
+            <span style={{color:"var(--text-primary)"}}>FULL-STACK </span><span style={{color:"var(--accent)"}}>TOOLBOX</span>
           </h2>
-          <p style={{fontFamily:"'Bricolage Grotesque'",fontWeight:600,fontSize:"clamp(15px,1.5vw,21px)",opacity:.55,marginTop:"12px",maxWidth:"56ch"}}>
-            not just the exact answer — the<span style={{color:"var(--accent)"}}> best</span> one. AI is baked into how I research, ideate and ship&nbsp;
+          <p className="section-subheading">
+            The development and design stack I use to take products from<span style={{color:"var(--accent)"}}> idea to production.</span>
           </p>
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:"clamp(6px,1.4vw,20px)"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:"clamp(6px,1.4vw,20px)",marginRight:"calc(var(--page-gutter) * -1)",marginLeft:"calc(var(--page-gutter) * -1)"}}>
           <div data-toolstrip="craft" style={{transform:"rotate(-2.2deg)",margin:"0 -4vw",width:"108vw"}} />
           <div data-toolstrip="ai" style={{transform:"rotate(1.6deg)",margin:"0 -4vw",width:"108vw"}} />
           <div data-toolstrip="craft2" style={{transform:"rotate(-1.2deg)",margin:"0 -4vw",width:"108vw"}} />
         </div>
       </section>
+
     </div>
   );
 }

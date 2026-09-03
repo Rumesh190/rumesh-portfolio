@@ -3,393 +3,163 @@
 import { useEffect, useRef, useState } from "react";
 import ContactModal from "./ContactModal";
 
-function useMagnetic() {
-  const ref = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || matchMedia("(pointer:coarse)").matches) return;
-    el.style.transition = "transform .3s cubic-bezier(.2,.7,.2,1)";
-    const onMove = (e: MouseEvent) => {
-      const r = el.getBoundingClientRect();
-      const mx = e.clientX - r.left - r.width / 2;
-      const my = e.clientY - r.top - r.height / 2;
-      el.style.transform = `translate(${mx * 0.35}px,${my * 0.5}px)`;
-    };
-    const onLeave = () => {
-      el.style.transform = "";
-    };
-    el.addEventListener("mousemove", onMove as EventListener);
-    el.addEventListener("mouseleave", onLeave);
-    return () => {
-      el.removeEventListener("mousemove", onMove as EventListener);
-      el.removeEventListener("mouseleave", onLeave);
-    };
-  }, []);
-  return ref;
-}
+const LINKS = [
+  { href: "#top", label: "Home", id: "top" },
+  { href: "#about", label: "About", id: "about" },
+  { href: "#work", label: "Work", id: "work" },
+  { href: "#expertise", label: "Expertise", id: "expertise" },
+  { href: "#experience", label: "Process", id: "experience" },
+  { href: "#contact", label: "Contact", id: "contact" },
+] as const;
 
-interface NavLinkProps {
+type PortfolioTheme = "red" | "black";
+
+function NavLink({ href, active, children, onClick }: {
   href: string;
+  active?: boolean;
   children: React.ReactNode;
   onClick?: () => void;
-}
-
-function NavLink({ href, children, onClick }: NavLinkProps) {
-  const ref = useMagnetic();
-  const underlineRef = useRef<HTMLSpanElement>(null);
-
-  const onEnter = () => {
-    const u = underlineRef.current;
-    if (u) {
-      u.style.transformOrigin = "left";
-      u.style.transform = "scaleX(1)";
-    }
-  };
-  const onLeave = () => {
-    const u = underlineRef.current;
-    if (u) {
-      u.style.transformOrigin = "right";
-      u.style.transform = "scaleX(0)";
-    }
-  };
-
+}) {
   return (
-    <a
-      ref={ref as React.RefObject<HTMLAnchorElement>}
-      href={href}
-      onClick={onClick}
-      style={{ display: "inline-block", position: "relative" }}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      data-magnetic=""
-    >
-      {children}
-      <span
-        ref={underlineRef}
-        style={{
-          position: "absolute",
-          left: 0,
-          bottom: "-4px",
-          height: "2px",
-          width: "100%",
-          background: "currentColor",
-          transform: "scaleX(0)",
-          transformOrigin: "left",
-          transition: "transform .35s cubic-bezier(.2,.7,.2,1)",
-        }}
-      />
+    <a className={`original-nav__link${active ? " is-active" : ""}`} href={href} onClick={onClick} data-magnetic="">
+      {children}<span aria-hidden="true" />
     </a>
   );
 }
 
 export default function Navbar() {
-  const [isDark, setIsDark] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [activeId, setActiveId] = useState("top");
+  const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState<PortfolioTheme>("red");
+  const [themeOpen, setThemeOpen] = useState(false);
+  const themeControlRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("rb_theme");
-      applyMode(saved === "dark");
-    } catch {
-      applyMode(false);
-    }
+    const current = document.documentElement.dataset.theme;
+    const frame = requestAnimationFrame(() => {
+      if (current === "red" || current === "black") setTheme(current);
+    });
+    return () => cancelAnimationFrame(frame);
   }, []);
 
-  // Lock body scroll when mobile menu is open; close when resizing to desktop
+  useEffect(() => {
+    if (!themeOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!themeControlRef.current?.contains(event.target as Node)) setThemeOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setThemeOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [themeOpen]);
+
+  useEffect(() => {
+    const updateScrolled = () => setScrolled(window.scrollY > 24);
+    window.addEventListener("scroll", updateScrolled, { passive: true });
+    updateScrolled();
+    return () => window.removeEventListener("scroll", updateScrolled);
+  }, []);
+
+  useEffect(() => {
+    // The original nav follows the visible portfolio section.
+    const sections = LINKS.map(({ id }) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible) setActiveId(visible.target.id);
+    }, { rootMargin: "-25% 0px -60%", threshold: [0, .2, .6] });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const openEnquiry = () => setModalOpen(true);
+    window.addEventListener("open-enquiry", openEnquiry);
+    return () => window.removeEventListener("open-enquiry", openEnquiry);
+  }, []);
+
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    const media = matchMedia("(min-width: 681px)");
+    const closeOnDesktop = () => { if (media.matches) setMenuOpen(false); };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setMenuOpen(false); };
+    media.addEventListener("change", closeOnDesktop);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      media.removeEventListener("change", closeOnDesktop);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
   }, [menuOpen]);
 
-  useEffect(() => {
-    const mq = matchMedia("(max-width:680px)");
-    const handler = () => { if (!mq.matches) setMenuOpen(false); };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  function applyMode(dark: boolean) {
-    const r = document.documentElement.style;
-    if (dark) {
-      r.setProperty("--bg", "#120c0b");
-      r.setProperty("--ink", "#f4ece2");
-      r.setProperty("--card", "#211613");
-    } else {
-      r.setProperty("--bg", "#f1ece1");
-      r.setProperty("--ink", "#17150f");
-      r.setProperty("--card", "#f7f3ea");
-    }
-    setIsDark(dark);
-    try {
-      localStorage.setItem("rb_theme", dark ? "dark" : "light");
-    } catch {}
-  }
-
-  const toggleTheme = () => applyMode(!isDark);
   const closeMenu = () => setMenuOpen(false);
+  const openModal = () => { closeMenu(); setModalOpen(true); };
+  const selectTheme = (nextTheme: PortfolioTheme) => {
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("portfolio-theme", nextTheme);
+    setTheme(nextTheme);
+    setThemeOpen(false);
+  };
 
-  const themeToggle = (
-    <button
-      onClick={toggleTheme}
-      aria-label="Toggle day / night"
-      style={{
-        position: "relative",
-        width: "44px",
-        height: "20px",
-        border: "1.5px solid currentColor",
-        background: "none",
-        color: "inherit",
-        borderRadius: "100px",
-        cursor: "pointer",
-        padding: 0,
-        flexShrink: 0,
-        alignSelf: "center",
-      }}
-    >
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "5px",
-          transform: "translateY(-50%)",
-          width: "9px",
-          height: "9px",
-          transition: "opacity .3s",
-          opacity: isDark ? 0.4 : 1,
-        }}
-      >
-        <circle cx="12" cy="12" r="4.5" />
-        <path d="M12 1.5v3M12 19.5v3M4 4l2 2M18 18l2 2M1.5 12h3M19.5 12h3M4 20l2-2M18 6l2-2" />
-      </svg>
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{
-          position: "absolute",
-          top: "50%",
-          right: "5px",
-          transform: "translateY(-50%)",
-          width: "8.5px",
-          height: "8.5px",
-          transition: "opacity .3s",
-          opacity: isDark ? 1 : 0.4,
-        }}
-      >
-        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
-      </svg>
-      <span
-        style={{
-          position: "absolute",
-          top: "1.5px",
-          left: "1.5px",
-          width: "15px",
-          height: "15px",
-          borderRadius: "50%",
-          background: "currentColor",
-          transition: "transform .38s cubic-bezier(.2,.8,.25,1)",
-          transform: isDark ? "translateX(24px)" : "translateX(0)",
-        }}
-      />
-    </button>
+  const themeIcon = (
+    <svg className="original-nav__theme-icon" viewBox="0 0 20 20" aria-hidden="true">
+      <circle cx="10" cy="10" r="7" />
+      <path d="M10 3a7 7 0 0 1 0 14Z" />
+    </svg>
   );
 
   return (
     <>
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 900,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "18px clamp(16px,4vw,56px)",
-          mixBlendMode: "difference",
-          color: "#fff",
-        }}
-      >
-        {/* Logo */}
-        <a
-          href="#top"
-          style={{
-            fontFamily: "'Bricolage Grotesque'",
-            fontWeight: 800,
-            fontSize: "clamp(18px,5vw,22px)",
-            letterSpacing: "-0.02em",
-            display: "inline-block",
-          }}
-        >
-          Eleven°
-        </a>
-
-        {/* Right side */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "clamp(9px,2vw,34px)",
-            fontFamily: "'Space Mono'",
-            fontSize: "clamp(10px,2.6vw,13px)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-          }}
-        >
-          {/* Desktop: nav links + CTA — hidden at ≤680px via CSS */}
-          <div
-            className="nav-desktop-links"
-            style={{
-              display: "contents",
-            }}
-          >
-            <NavLink href="#about">About</NavLink>
-            <NavLink href="#work">Work</NavLink>
-            <NavLink href="#experience">Path</NavLink>
-            <NavLink href="#contact">Contact</NavLink>
-
-            <button
-              onClick={() => setModalOpen(true)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                padding: "7px 18px",
-                marginLeft: "8px",
-                border: "1px solid currentColor",
-                borderRadius: "999px",
-                background: "none",
-                color: "inherit",
-                fontFamily: "'Space Mono'",
-                fontSize: "12px",
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                cursor: "pointer",
-                opacity: 0.75,
-                transition: "opacity .25s, transform .25s cubic-bezier(.2,.7,.2,1)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.transform = "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "0.75";
-                e.currentTarget.style.transform = "";
-              }}
-            >
-              Enquire
+      <nav className={`original-nav${scrolled ? " is-scrolled" : ""}`} aria-label="Primary navigation">
+        <div className="original-nav__inner">
+          <div className="original-nav__brand">
+            <a className="original-nav__logo" href="#top">Eleven°</a>
+            <span className="original-nav__divider" aria-hidden="true" />
+          </div>
+          <div className="original-nav__desktop">
+            {LINKS.map((link) => <NavLink href={link.href} active={activeId === link.id} key={link.id}>{link.label}</NavLink>)}
+          </div>
+          <div className="original-nav__right">
+            <div className="original-nav__theme-control" ref={themeControlRef}>
+              <button className="original-nav__theme-button" type="button" onClick={() => setThemeOpen((open) => !open)} aria-expanded={themeOpen} aria-haspopup="menu">
+                <span>Theme</span>{themeIcon}
+              </button>
+              <div className={`original-nav__theme-popover${themeOpen ? " is-open" : ""}`} role="menu" aria-label="Portfolio theme">
+                <span>Theme</span>
+                {(["red", "black"] as const).map((option) => (
+                  <button type="button" role="menuitemradio" aria-checked={theme === option} onClick={() => selectTheme(option)} key={option}>
+                    <i className={theme === option ? "is-selected" : ""} aria-hidden="true" />{option}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button className="original-nav__cta" type="button" onClick={openModal}>
+              <span>Let&apos;s talk</span><span className="original-nav__cta-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button className="original-nav__menu" type="button" onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-label={menuOpen ? "Close menu" : "Open menu"}>
+              <span /><span /><span />
             </button>
           </div>
-
-          {/* Theme toggle — always visible */}
-          {themeToggle}
-
-          {/* Hamburger — visible at ≤680px via CSS */}
-          <button
-            className="nav-hamburger"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            style={{
-              background: "none",
-              border: "1.5px solid currentColor",
-              color: "inherit",
-              cursor: "pointer",
-              padding: "3px 10px",
-              borderRadius: "6px",
-            }}
-          >
-            <span
-              style={{
-                display: "block",
-                width: "18px",
-                height: "1.5px",
-                background: "currentColor",
-                transition: "transform .3s cubic-bezier(.2,.7,.2,1)",
-                transform: menuOpen ? "translateY(4.5px) rotate(45deg)" : "none",
-              }}
-            />
-            <span
-              style={{
-                display: "block",
-                width: "18px",
-                height: "1.5px",
-                background: "currentColor",
-                transition: "opacity .3s",
-                opacity: menuOpen ? 0 : 1,
-              }}
-            />
-            <span
-              style={{
-                display: "block",
-                width: "18px",
-                height: "1.5px",
-                background: "currentColor",
-                transition: "transform .3s cubic-bezier(.2,.7,.2,1)",
-                transform: menuOpen ? "translateY(-4.5px) rotate(-45deg)" : "none",
-              }}
-            />
-          </button>
         </div>
       </nav>
 
-      <ContactModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
-
-      {/* Mobile menu overlay — sibling to <nav> to avoid mix-blend-mode inheritance */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 800,
-          background: "var(--bg)",
-          color: "var(--ink)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "36px",
-          fontFamily: "'Space Mono'",
-          fontSize: "clamp(20px,5vw,28px)",
-          textTransform: "uppercase",
-          letterSpacing: ".08em",
-          pointerEvents: menuOpen ? "all" : "none",
-          opacity: menuOpen ? 1 : 0,
-          transition: "opacity .3s cubic-bezier(.2,.7,.2,1)",
-        }}
-      >
-        <a href="#about" onClick={closeMenu}>About</a>
-        <a href="#work" onClick={closeMenu}>Work</a>
-        <a href="#experience" onClick={closeMenu}>Path</a>
-        <a href="#contact" onClick={closeMenu}>Contact</a>
-        <a
-          href="#"
-          style={{
-            marginTop: "8px",
-            display: "inline-flex",
-            alignItems: "center",
-            padding: "14px 32px",
-            borderRadius: "999px",
-            border: "1px solid var(--ink)",
-            background: "none",
-            color: "var(--ink)",
-            fontFamily: "'Space Mono'",
-            fontSize: "13px",
-            textTransform: "uppercase",
-            letterSpacing: ".08em",
-          }}
-          onClick={(e) => { e.preventDefault(); closeMenu(); setModalOpen(true); }}
-        >
-          Enquire
-        </a>
+      <div className={`original-nav__overlay${menuOpen ? " is-open" : ""}`} aria-hidden={!menuOpen}>
+        {LINKS.map((link) => <a href={link.href} onClick={closeMenu} key={link.id}>{link.label}</a>)}
+        <div className="original-nav__mobile-theme" aria-label="Portfolio theme">
+          <span>Theme</span>
+          {(["red", "black"] as const).map((option) => (
+            <button className={theme === option ? "is-selected" : ""} type="button" onClick={() => selectTheme(option)} key={option}>{option}</button>
+          ))}
+        </div>
+        <button type="button" onClick={openModal}>Let&apos;s talk</button>
       </div>
+      <ContactModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }
